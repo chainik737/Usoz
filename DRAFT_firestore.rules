@@ -1,0 +1,91 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Validation Blueprints ---
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'name', 'email', 'role']) &&
+             data.keys().size() >= 4 &&
+             data.uid == request.auth.uid &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.email is string && data.email.size() <= 200 &&
+             data.role in ['student', 'tutor'];
+    }
+
+    function isValidSession(data) {
+      return data.keys().hasAll(['studentId', 'tutorId', 'subject', 'startTime', 'status']) &&
+             (data.studentId == request.auth.uid || data.tutorId == request.auth.uid) &&
+             data.subject is string && data.subject.size() > 0 && data.subject.size() <= 100 &&
+             data.status in ['pending', 'confirmed', 'completed', 'cancelled'];
+    }
+
+    function isValidMessage(data) {
+      return data.keys().hasAll(['senderId', 'text', 'timestamp']) &&
+             data.senderId == request.auth.uid &&
+             data.text is string && data.text.size() > 0 && data.text.size() <= 1000 &&
+             data.timestamp == request.time;
+    }
+
+    // --- Collection Matches ---
+
+    match /users/{userId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn(); // In a tutoring app, many users are public (tutors)
+      allow create: if isOwner(userId) && isValidUser(incoming());
+      allow update: if isOwner(userId) && isValidUser(incoming()) && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['name', 'university', 'bio', 'subjects', 'imageUrl', 'updatedAt'])
+      );
+    }
+
+    match /sessions/{sessionId} {
+      allow get: if isSignedIn() && (existing().studentId == request.auth.uid || existing().tutorId == request.auth.uid);
+      allow list: if isSignedIn() && (resource.data.studentId == request.auth.uid || resource.data.tutorId == request.auth.uid);
+      
+      allow create: if isSignedIn() && isValidSession(incoming()) && incoming().studentId == request.auth.uid;
+      
+      allow update: if isSignedIn() && (existing().studentId == request.auth.uid || existing().tutorId == request.auth.uid) && 
+                      isValidSession(incoming()) && (
+                        // Both can update status, but with different constraints usually
+                        incoming().diff(existing()).affectedKeys().hasAny(['status', 'updatedAt']) &&
+                        incoming().studentId == existing().studentId &&
+                        incoming().tutorId == existing().tutorId
+                      );
+      
+      match /messages/{messageId} {
+        allow list: if isSignedIn() && 
+                    (get(/databases/$(database)/documents/sessions/$(sessionId)).data.studentId == request.auth.uid || 
+                     get(/databases/$(database)/documents/sessions/$(sessionId)).data.tutorId == request.auth.uid);
+        allow create: if isSignedIn() && 
+                      (get(/databases/$(database)/documents/sessions/$(sessionId)).data.studentId == request.auth.uid || 
+                       get(/databases/$(database)/documents/sessions/$(sessionId)).data.tutorId == request.auth.uid) &&
+                      isValidMessage(incoming());
+      }
+    }
+  }
+}

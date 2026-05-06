@@ -1,0 +1,144 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User profile information for students and tutors.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Auth UID" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "university": { "type": "string" },
+        "bio": { "type": "string" },
+        "subjects": { "type": "array", "items": { "type": "string" } },
+        "imageUrl": { "type": "string", "format": "uri" },
+        "role": { "type": "string", "enum": ["student", "tutor"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "name", "email", "role"]
+    },
+    "Session": {
+      "title": "Tutoring Session",
+      "description": "Information about a tutoring session between student and tutor.",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string", "description": "UID of the student" },
+        "tutorId": { "type": "string", "description": "UID of the tutor" },
+        "subject": { "type": "string" },
+        "startTime": { "type": "string", "format": "date-time" },
+        "endTime": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "completed", "cancelled"] },
+        "location": { "type": "string" },
+        "price": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["studentId", "tutorId", "subject", "startTime", "status"]
+    },
+    "Message": {
+      "title": "Chat Message",
+      "description": "Individual message within a session or chat trial.",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["senderId", "text", "timestamp"]
+    },
+    "Chat": {
+      "title": "Chat Conversation",
+      "description": "A conversation between two or more participants.",
+      "type": "object",
+      "properties": {
+        "participants": { "type": "array", "items": { "type": "string" } },
+        "lastMessage": { "type": "string" },
+        "lastMessageTime": { "type": "string", "format": "date-time" },
+        "participantNames": { "type": "object" },
+        "participantImages": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "isArchived": { "type": "boolean" }
+      },
+      "required": ["participants"]
+    },
+    "Report": {
+      "title": "Report",
+      "description": "A report filed against a tutor or content.",
+      "type": "object",
+      "properties": {
+        "reportedId": { "type": "string" },
+        "reporterId": { "type": "string" },
+        "reason": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "resolved"] },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "type": { "type": "string" }
+      },
+      "required": ["reportedId", "reporterId", "reason", "status", "timestamp"]
+    },
+    "Review": {
+      "title": "Tutor Review",
+      "description": "A review and rating left by a student for a tutor.",
+      "type": "object",
+      "properties": {
+        "tutorId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "studentImage": { "type": "string" },
+        "rating": { "type": "number", "minimum": 1, "maximum": 5 },
+        "comment": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["tutorId", "studentId", "rating", "comment", "createdAt"]
+    },
+    "Notification": {
+      "title": "User Notification",
+      "description": "Internal notification for users regarding bookings, chats, etc.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "type": { "type": "string", "enum": ["booking", "chat", "system"] },
+        "isRead": { "type": "boolean" },
+        "relatedId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "body", "type", "createdAt"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Public and private user profile data."
+    },
+    "reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "Public reviews for tutors."
+    },
+    "notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "User notifications."
+    },
+    "sessions/{sessionId}": {
+      "schema": "Session",
+      "description": "Tutoring sessions."
+    },
+    "sessions/{sessionId}/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Messages sent within a specific session chat."
+    },
+    "chats/{chatId}": {
+      "schema": "Chat",
+      "description": "User-to-user chat conversations."
+    },
+    "chats/{chatId}/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Messages sent within a chat conversation."
+    },
+    "reports/{reportId}": {
+      "schema": "Report",
+      "description": "User reports."
+    }
+  }
+}

@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800&display=swap');
+
+@theme {
+  --color-primary: #002d37;
+  --color-primary-container: #1a434e;
+  --color-on-primary-container: #88afbc;
+  
+  --color-secondary: #855300;
+  --color-secondary-container: #fea619;
+  --color-on-secondary-container: #684000;
+  
+  --color-tertiary: #002f1e;
+  --color-tertiary-container: #00482f;
+  --color-on-tertiary-container: #22c087;
+  
+  --color-surface: #f8f9ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #eff4ff;
+  --color-surface-container: #e5eeff;
+  --color-surface-container-high: #dce9ff;
+  --color-surface-container-highest: #d3e4fe;
+  
+  --color-on-surface: #0b1c30;
+  --color-on-surface-variant: #41484a;
+  
+  --color-outline: #71787b;
+  --color-outline-variant: #c1c8ca;
+  
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #93000a;
+
+  /* Fixed colors from templates */
+  --color-tertiary-fixed-dim: #4edea3;
+  --color-secondary-fixed: #ffddb8;
+  --color-primary-fixed: #c0e9f7;
+
+  --font-lexend: "Lexend", sans-serif;
+  
+  --radius-xl: 1.5rem;
+  --radius-lg: 1rem;
+  --radius-md: 0.75rem;
+
+  /* Dark mode overrides - Deep Midnight Elite */
+  --color-dark-surface: #040507;
+  --color-dark-on-surface: #f0f2f5;
+  --color-dark-surface-container: #0d1117;
+  --color-dark-surface-container-low: #080a0f;
+  --color-dark-border: #1f2937;
+  --color-dark-accent: #3b82f6;
+}
+
+.dark {
+  --color-surface: var(--color-dark-surface);
+  --color-on-surface: var(--color-dark-on-surface);
+  --color-surface-container-lowest: #0a0c10;
+  --color-surface-container-low: var(--color-dark-surface-container-low);
+  --color-surface-container: var(--color-dark-surface-container);
+  --color-outline-variant: var(--color-dark-border);
+  --color-on-surface-variant: #94a3b8;
+  --color-primary-container: #1d2b3a;
+  --color-on-primary-container: #60a5fa;
+}
+
+/* Font Size Scaling */
+:root {
+  --app-font-scale: 1;
+}
+
+.font-size-small { --app-font-scale: 0.85; }
+.font-size-medium { --app-font-scale: 1; }
+.font-size-large { --app-font-scale: 1.25; }
+
+@layer base {
+  body {
+    @apply bg-surface text-on-surface font-lexend antialiased;
+    font-size: calc(1rem * var(--app-font-scale));
+    transition: background-color 0.3s ease, color 0.3s ease, font-size 0.2s ease;
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+.animate-shake {
+  animation: shake 0.2s ease-in-out 0s 2;
+}
+
+@layer base {
+  body {
+    @apply bg-surface text-on-surface font-lexend antialiased;
+  }
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
